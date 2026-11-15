@@ -1,0 +1,254 @@
+//JVida2_DHIR_View.cpp
+//05/11/2026
+/*Daniel Luis de Amorim Mariano Santos
+Henrique Campos Rodrigues
+Isabella de Souza Fleury
+Rafaella Castro Zandona Alves de Lima */
+
+#include <stdio.h>
+#include <conio.h>
+#include <windows.h>
+#include <stdlib.h>
+#include "JVida2_DHIR_View.h"
+
+
+/* descarta o que sobrou na linha de entrada */
+static void limparBuffer() {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF) {
+    }
+}
+
+/* le um inteiro; retorna 1 se leu, 0 se a entrada era invalida, -1 se acabou a entrada (EOF) */
+static int lerInteiro(int *valor) {
+    int r = scanf("%d", valor);
+    if (r == 1) {
+        limparBuffer();
+        return 1;
+    }
+    if (r == EOF) {
+        return -1;
+    }
+    limparBuffer();
+    return 0;
+}
+
+void mostrarMapa() {
+    int l, c;
+
+    printf("\n    ");
+    for (c = 0; c < dim; c++) {
+        printf("%02d ", c); /* escreve o numero com 2 digitos */
+    }
+    printf("\n");
+
+    for (l = 0; l < dim; l++) {
+        printf("%02d  ", l);
+        for (c = 0; c < dim; c++) {
+            printf("%c  ", Matriz[l][c]);
+        }
+        printf("\n");
+    }
+}
+
+int pedirDim() {
+    int d = 0;
+    int r;
+    do {
+        printf("Digite a dimensao do mapa (de 10 a 60): ");
+        r = lerInteiro(&d);
+        if (r == -1) {
+            return 10; /* entrada encerrada: usa o minimo para nao travar */
+        }
+        if (r == 0 || !dimValida(d)) {
+            printf("Valor invalido!\n");
+            d = 0;
+        }
+    } while (!dimValida(d));
+    return d;
+}
+
+void mostrarMenu() {
+    printf("\n  J O G O   D A   V I D A\n");
+    printf("===========================\n");
+    printf("1 - Incluir/excluir celulas vivas\n");
+    printf("2 - Mostrar/Esconder os mortos-vizinhos\n");
+    printf("3 - Salvar geracao no arquivo\n");
+    printf("4 - Carregar proxima geracao do arquivo\n");
+    printf("5 - Avancar uma geracao\n");
+    printf("6 - Simular geracoes\n");
+    printf("0 - Sair\n");
+    printf("Opcao selecionada: ");
+}
+
+void limparTela() {
+    system("cls");
+}
+
+void pausar() {
+    printf("Aperte qualquer tecla para continuar...\n");
+    getch();
+}
+
+int lerOpcao() {
+    int op;
+    int r = lerInteiro(&op);
+    if (r == -1) {
+        return 0; /* entrada encerrada: sai do programa */
+    }
+    if (r == 0) {
+        return -1; /* cai no "Opcao invalida!" */
+    }
+    return op;
+}
+
+void pedirCoordenadas(int *l, int *c) { /* * indica ponteiro, onde guarda o "endereco" da variavel. */
+    printf("Linha: ");
+    if (lerInteiro(l) != 1) {
+        *l = -1; /* coordenada invalida */
+    }
+    printf("Coluna: ");
+    if (lerInteiro(c) != 1) {
+        *c = -1; /* coordenada invalida */
+    }
+}
+int contAdicionar(){
+	char a = 'n';
+	while(1){
+		printf("Deseja adicionar mais celulas (s/n)? ");
+		if (scanf("%c", &a) == EOF){ // EOF = End Of File (fim do arquivo), nao ha mais nada para ler
+			return 0;
+		}
+		limparBuffer();
+		if (a == 's' || a == 'S'){
+			return 1;
+		}
+		else if (a == 'n' || a == 'N'){
+			return 0;
+		}
+		else {
+			printf("Digite uma tecla valida!\n");
+		}
+	}
+}
+
+int perguntarExcluir() {
+    char e = 'n';
+    printf("Ja existe uma celula viva aqui. Excluir? (s/n): ");
+    scanf(" %c", &e);
+    limparBuffer();
+    if (e == 's' || e == 'S') {
+        return 1;
+    }
+    return 0;
+}
+
+void mostrarCoordInvalida() {
+    printf("Coordenada invalida!\n"); /* case 2 */
+}
+
+void mostrarDespedida() {
+    printf("Ate logo!\n"); /* case 0 */
+}
+
+void mostrarOpcaoInvalida() {
+    printf("Opcao invalida!\n"); /* default */
+}
+
+void mostrarEstadoMortos(int estado) {
+    if (estado == 1) {
+        printf("Vizinhas-mortas: MOSTRANDO\n");
+    } else {
+        printf("Vizinhas-mortas: ESCONDIDAS\n");
+    }
+}
+
+void mostrarSalvoOk() {
+    printf("Geracao salva com sucesso!\n");
+}
+
+void mostrarCarregadoOk() {
+    printf("Geracao carregada com sucesso!\n");
+}
+
+void mostrarFimGeracoes() {
+    printf("Nao ha mais geracoes no arquivo. Na proxima vez volta para a primeira.\n");
+}
+
+void mostrarErroArquivo() {
+    printf("Nenhuma geracao salva ainda (arquivo nao encontrado)!\n");
+}
+
+void mostrarContagem(int vivas, int mortas) {
+    printf("\nCelulas vivas: %d\n", vivas);
+    printf("Vizinhas-mortas: %d\n", mortas);
+}
+
+void pedirQtdGeracoes(int *qtd) {
+    int r;
+    do {
+        printf("Quantidade de geracoes: ");
+        r = lerInteiro(qtd);
+		if (r == -1) {
+    		*qtd = 1;
+    		return;
+		}
+        if (r == 0 || !qtdValida(*qtd)) {
+            printf("Quantidade invalida!\n");
+            *qtd = 0;
+        }
+    } while (!qtdValida(*qtd));
+}
+
+void pedirVelocidade(int *vel){
+	int r;
+	do{
+		printf("Qual velocidade deseja, velocidade em decimo de segundo (0 = passo a passo): ");
+		r = lerInteiro(vel);
+		if (r == -1) {
+    		*vel = 0;
+    		return;
+		}
+		if (r == 0 || !velValida(*vel)){
+			printf("Velocidade Invalida!\n");
+			*vel = -1;
+		}
+	} while (!velValida(*vel));
+}
+
+void mostrarNumGeracao(int g, int total){
+		printf("Geracao %d de %d\n", g, total);
+}
+
+void esperarVelocidade(int vel){
+    if (vel == 0) {
+        printf("Aperte qualquer tecla para a proxima geracao.\n");
+        getch();
+    } else {
+        Sleep(vel * 100); //para a velocidade valer decimo de segundo 
+    }
+}
+
+static void imprimirLista(No *ini) {
+    No *p;
+    int n = 0;
+    if (ini == NULL) {
+        printf("(nenhuma)\n");
+        return;
+    }
+    for (p = ini; p != NULL; p = p->prox) {
+        printf("(%d,%d) ", p->l, p->c);
+        n++;
+        if (n % 10 == 0) {
+            printf("\n"); /* 10 por linha para nao ficar enorme */
+        }
+    }
+    printf("\n");
+}
+
+void mostrarListas(No *vivas, No *mortas) {
+    printf("\nLista das celulas vivas:\n");
+    imprimirLista(vivas);
+    printf("\nLista das vizinhas-mortas:\n");
+    imprimirLista(mortas);
+}
